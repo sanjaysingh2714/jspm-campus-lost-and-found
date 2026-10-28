@@ -5,16 +5,19 @@ import { Claim, ClaimStatus } from '../types/database';
 export const claimsService = {
   async createClaim(itemId: string, claimantId: string, claimMessage: string): Promise<Claim> {
     if (isSupabaseConfigured()) {
-      // 1. Check if claimant is the owner
+      // 1. Check if claimant is the owner and item is open
       const { data: itemData, error: itemErr } = await supabase
         .from('items')
-        .select('owner_id, status, item_name')
+        .select('owner_id, status, item_name, item_type')
         .eq('id', itemId)
         .single();
 
       if (itemErr || !itemData) throw new Error('Listing could not be found.');
       if (itemData.owner_id === claimantId) {
         throw new Error('You cannot claim an item that you reported.');
+      }
+      if (itemData.item_type !== 'found') {
+        throw new Error('Ownership claims can only be submitted for found items.');
       }
       if (itemData.status === 'returned' || itemData.status === 'closed') {
         throw new Error('This item is no longer open for claims.');
@@ -59,6 +62,9 @@ export const claimsService = {
     if (item.owner_id === claimantId) {
       throw new Error('You cannot claim an item that you reported.');
     }
+    if (item.item_type !== 'found') {
+      throw new Error('Ownership claims can only be submitted for found items.');
+    }
     if (item.status === 'returned' || item.status === 'closed') {
       throw new Error('This item is no longer open for claims.');
     }
@@ -71,10 +77,12 @@ export const claimsService = {
       throw new Error('You already have an active claim submitted for this item.');
     }
 
+    const claimantProfile = mockStore.getProfile(claimantId);
     const newClaim: Claim = {
       id: 'claim-' + Math.random().toString(36).substring(2, 9),
       item_id: itemId,
       claimant_id: claimantId,
+      claimant_name: claimantProfile?.full_name || 'Student Claimant',
       claim_message: claimMessage,
       status: 'pending',
       created_at: new Date().toISOString(),
@@ -125,10 +133,22 @@ export const claimsService = {
     const profiles = mockStore.getUsers().map((u) => u.profile);
 
     return claims
-      .map((c) => ({
-        ...c,
-        claimant: profiles.find((p) => p.id === c.claimant_id) || { full_name: 'Student Claimant' },
-      }))
+      .map((c) => {
+        const prof = profiles.find((p) => p.id === c.claimant_id);
+        const claimantName = c.claimant_name || prof?.full_name || 'Student Claimant';
+        return {
+          ...c,
+          claimant_name: claimantName,
+          claimant: prof
+            ? {
+                id: prof.id,
+                full_name: prof.full_name,
+                // Handover privacy: phone & email only revealed if claim is approved
+                ...(c.status === 'approved' ? { email: prof.email, phone: prof.phone } : {}),
+              }
+            : { full_name: claimantName },
+        };
+      })
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   },
 
@@ -189,6 +209,15 @@ export const claimsService = {
     // Only owner of the item can approve or reject
     if (item.owner_id !== currentUserId) {
       throw new Error('Only the listing finder can approve or reject claims.');
+    }
+
+    // Invariant: Once resolved, claim status cannot be altered
+    if (claim.status !== 'pending') {
+      throw new Error('Claim has already been resolved and cannot be modified.');
+    }
+
+    if (status !== 'approved' && status !== 'rejected') {
+      throw new Error('Invalid claim status transition.');
     }
 
     claim.status = status;

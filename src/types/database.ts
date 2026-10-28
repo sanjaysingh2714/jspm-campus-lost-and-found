@@ -26,6 +26,7 @@ export interface Item {
   status: ItemStatus;
   created_at: string;
   updated_at: string;
+  owner_name?: string;
   // Joined fields
   owner?: Partial<Profile>;
 }
@@ -34,6 +35,7 @@ export interface Claim {
   id: string;
   item_id: string;
   claimant_id: string;
+  claimant_name?: string;
   claim_message: string;
   status: ClaimStatus;
   created_at: string;

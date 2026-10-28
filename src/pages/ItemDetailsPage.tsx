@@ -382,7 +382,7 @@ export const ItemDetailsPage: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <User className="w-4 h-4 text-slate-400" />
                           <span className="text-xs font-bold text-slate-900">
-                            {claim.claimant?.full_name || 'Student Claimant'}
+                            {claim.claimant_name || claim.claimant?.full_name || 'Student Claimant'}
                           </span>
                           <span className="text-[10px] text-slate-400">
                             {formatRelativeTime(claim.created_at)}
@@ -403,14 +403,14 @@ export const ItemDetailsPage: React.FC = () => {
                         <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200 text-xs text-emerald-900">
                           <span className="font-bold block mb-1">Handover Contact Details:</span>
                           <p>
-                            Claimant Name: <strong>{claim.claimant?.full_name}</strong>
+                            Claimant Name: <strong>{claim.claimant_name || claim.claimant?.full_name}</strong>
                           </p>
                           <p>
                             Phone / WhatsApp:{' '}
                             <strong>{claim.claimant?.phone || 'Provided via Portal'}</strong>
                           </p>
                           <p>
-                            College Email: <strong>{claim.claimant?.email}</strong>
+                            College Email: <strong>{claim.claimant?.email || 'Registered College Email'}</strong>
                           </p>
                         </div>
                       )}
@@ -465,7 +465,7 @@ export const ItemDetailsPage: React.FC = () => {
               <div className="flex justify-between py-1 border-b border-slate-200/60">
                 <span className="text-slate-500">Reported By</span>
                 <span className="font-semibold text-slate-800">
-                  {isOwner ? 'You (Listing Owner)' : item.owner?.full_name || 'Enrolled Student'}
+                  {isOwner ? 'You (Listing Owner)' : item.owner_name || item.owner?.full_name || 'Enrolled Student'}
                 </span>
               </div>
               <div className="flex justify-between py-1 border-b border-slate-200/60">
@@ -477,7 +477,7 @@ export const ItemDetailsPage: React.FC = () => {
               <div className="flex justify-between py-1">
                 <span className="text-slate-500">Phone Contact</span>
                 <span className="font-semibold text-slate-800">
-                  {isOwner ? profile?.phone : maskPhoneNumber(item.owner?.phone)}
+                  {isOwner ? profile?.phone : item.owner?.phone ? maskPhoneNumber(item.owner.phone) : 'Protected until claim approval'}
                 </span>
               </div>
             </div>

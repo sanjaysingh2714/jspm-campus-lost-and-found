@@ -18,7 +18,7 @@ export const itemsService = {
         .from('items')
         .select(`
           *,
-          owner:profiles(id, full_name, email)
+          owner:profiles(id, full_name)
         `);
 
       if (filters.type) {
@@ -55,11 +55,17 @@ export const itemsService = {
     let items = mockStore.getItems();
     const profiles = mockStore.getUsers().map((u) => u.profile);
 
-    // Attach owner info
-    items = items.map((item) => ({
-      ...item,
-      owner: profiles.find((p) => p.id === item.owner_id) || { full_name: 'Campus Student' },
-    }));
+    // Attach sanitized owner info (no phone or email leakage)
+    items = items.map((item) => {
+      const p = profiles.find((prof) => prof.id === item.owner_id);
+      return {
+        ...item,
+        owner: {
+          id: p?.id || item.owner_id,
+          full_name: p?.full_name || 'Campus Student',
+        },
+      };
+    });
 
     if (filters.type) {
       items = items.filter((item) => item.item_type === filters.type);
@@ -95,7 +101,7 @@ export const itemsService = {
         .from('items')
         .select(`
           *,
-          owner:profiles(id, full_name, email, phone)
+          owner:profiles(id, full_name)
         `)
         .eq('id', id)
         .single();
@@ -114,7 +120,10 @@ export const itemsService = {
     const profile = mockStore.getProfile(item.owner_id);
     return {
       ...item,
-      owner: profile || { full_name: 'Campus Student' },
+      owner: {
+        id: profile?.id || item.owner_id,
+        full_name: profile?.full_name || 'Campus Student',
+      },
     };
   },
 
@@ -153,10 +162,13 @@ export const itemsService = {
   },
 
   async updateItem(id: string, updates: Partial<Item>): Promise<Item> {
+    // Strip immutable fields
+    const { id: _id, owner_id: _owner, item_type: _type, created_at: _cat, ...safeUpdates } = updates;
+
     if (isSupabaseConfigured()) {
       const { data, error } = await supabase
         .from('items')
-        .update(updates)
+        .update(safeUpdates)
         .eq('id', id)
         .select()
         .single();
@@ -174,7 +186,7 @@ export const itemsService = {
 
     const updated = {
       ...items[index],
-      ...updates,
+      ...safeUpdates,
       updated_at: new Date().toISOString(),
     };
     items[index] = updated;

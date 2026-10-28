@@ -1,5 +1,7 @@
 import puppeteer from 'puppeteer-core';
 import { spawn } from 'child_process';
+import os from 'os';
+import path from 'path';
 
 const CHROME_PATH = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 const PORT = 5174;
@@ -35,9 +37,12 @@ async function runQASuite() {
 
   try {
     console.log(`Launching Google Chrome from ${CHROME_PATH}...`);
+    const tempUserDataDir = path.join(os.tmpdir(), `puppeteer_qa_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`);
     browser = await puppeteer.launch({
       executablePath: CHROME_PATH,
       headless: 'new',
+      pipe: true,
+      userDataDir: tempUserDataDir,
       args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--window-size=1280,800'],
     });
 

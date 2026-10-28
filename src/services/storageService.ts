@@ -36,8 +36,17 @@ export const storageService = {
     // If Supabase is configured, upload to storage bucket
     if (isSupabaseConfigured()) {
       try {
-        const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-        const fileName = `${userId}/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+        const allowedExts = ['jpg', 'jpeg', 'png', 'webp'];
+        const rawExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+        const safeExt = allowedExts.includes(rawExt) ? rawExt : 'jpg';
+
+        // Sanitize userId to strictly alphanumeric/uuid characters to prevent path traversal
+        const sanitizedUserId = userId.replace(/[^a-zA-Z0-9_-]/g, '');
+        if (!sanitizedUserId) {
+          return { url: '', error: 'Invalid user authentication context for upload.' };
+        }
+
+        const fileName = `${sanitizedUserId}/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${safeExt}`;
 
         const { error: uploadError } = await supabase.storage
           .from('item-images')
@@ -48,13 +57,13 @@ export const storageService = {
 
         if (uploadError) {
           console.error('Supabase storage upload error:', uploadError);
-          return { url: '', error: uploadError.message };
+          return { url: '', error: 'Image upload failed. Please verify format and network connection.' };
         }
 
         const { data } = supabase.storage.from('item-images').getPublicUrl(fileName);
         return { url: data.publicUrl };
       } catch (err: any) {
-        return { url: '', error: err.message || 'Image upload failed' };
+        return { url: '', error: 'An unexpected error occurred during image upload.' };
       }
     }
 
