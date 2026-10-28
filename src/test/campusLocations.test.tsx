@@ -1,4 +1,7 @@
+import React from 'react';
 import { describe, it, expect, beforeEach } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import {
   CAMPUS_LOCATIONS,
   CAMPUS_LOCATION_PLACEHOLDER,
@@ -6,6 +9,11 @@ import {
 } from '../constants/campusLocations';
 import { itemSchema } from '../lib/validators';
 import { itemsService } from '../services/itemsService';
+import { claimsService } from '../services/claimsService';
+import { AuthProvider } from '../context/AuthContext';
+import { ReportLostPage } from '../pages/ReportLostPage';
+import { ReportFoundPage } from '../pages/ReportFoundPage';
+import { DashboardPage } from '../pages/DashboardPage';
 
 describe('Official Campus Locations Suite (15 Approved Locations)', () => {
   beforeEach(() => {
@@ -193,6 +201,176 @@ describe('Official Campus Locations Suite (15 Approved Locations)', () => {
       // The record is included in global catalog fetch
       const catalog = await itemsService.fetchItems({ type: 'found' });
       expect(catalog.some((i) => i.id === legacyItem.id)).toBe(true);
+    });
+  });
+
+  describe('UI Component Dropdown Integrity', () => {
+    it('renders all 15 options plus placeholder in Report Lost form', () => {
+      const { container } = render(
+        <MemoryRouter>
+          <AuthProvider>
+            <ReportLostPage />
+          </AuthProvider>
+        </MemoryRouter>
+      );
+
+      const locationSelect = container.querySelector('select[name="location"]') as HTMLSelectElement;
+      expect(locationSelect).not.toBeNull();
+
+      const options = Array.from(locationSelect.options);
+      expect(options.length).toBe(16); // 1 placeholder + 15 locations
+      expect(options[0].value).toBe('');
+      expect(options[0].textContent).toBe('Select campus location');
+
+      const renderedLocationValues = options.slice(1).map((opt) => opt.value);
+      expect(renderedLocationValues).toEqual([...EXPECTED_OFFICIAL_LOCATIONS]);
+
+      LEGACY_REMOVED_LOCATIONS.forEach((oldLoc) => {
+        expect(renderedLocationValues).not.toContain(oldLoc);
+      });
+    });
+
+    it('renders all 15 options plus placeholder in Report Found form', () => {
+      const { container } = render(
+        <MemoryRouter>
+          <AuthProvider>
+            <ReportFoundPage />
+          </AuthProvider>
+        </MemoryRouter>
+      );
+
+      const locationSelect = container.querySelector('select[name="location"]') as HTMLSelectElement;
+      expect(locationSelect).not.toBeNull();
+
+      const options = Array.from(locationSelect.options);
+      expect(options.length).toBe(16); // 1 placeholder + 15 locations
+      expect(options[0].value).toBe('');
+      expect(options[0].textContent).toBe('Select campus location');
+
+      const renderedLocationValues = options.slice(1).map((opt) => opt.value);
+      expect(renderedLocationValues).toEqual([...EXPECTED_OFFICIAL_LOCATIONS]);
+
+      LEGACY_REMOVED_LOCATIONS.forEach((oldLoc) => {
+        expect(renderedLocationValues).not.toContain(oldLoc);
+      });
+    });
+
+    it('renders "📍 All Campus Locations" plus all 15 options in Dashboard filter', async () => {
+      const { container } = render(
+        <MemoryRouter>
+          <AuthProvider>
+            <DashboardPage />
+          </AuthProvider>
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        const selects = container.querySelectorAll('select');
+        expect(selects.length).toBeGreaterThan(0);
+      });
+
+      // Find the location filter select (contains "All Campus Locations")
+      const selects = Array.from(container.querySelectorAll('select'));
+      const locationFilterSelect = selects.find((s) =>
+        s.textContent?.includes('All Campus Locations')
+      ) as HTMLSelectElement;
+
+      expect(locationFilterSelect).toBeDefined();
+      const options = Array.from(locationFilterSelect.options);
+      expect(options.length).toBe(16); // 1 'all' option + 15 locations
+      expect(options[0].value).toBe('all');
+
+      const filterValues = options.slice(1).map((opt) => opt.value);
+      expect(filterValues).toEqual([...EXPECTED_OFFICIAL_LOCATIONS]);
+    });
+  });
+
+  describe('Security & Authorization Boundary Regression Verification', () => {
+    it('preserves immutable item fields protection when updating', async () => {
+      const item = await itemsService.createItem({
+        owner_id: 'user-rohit-001',
+        item_type: 'found',
+        item_name: 'Water Flask',
+        category: 'Bottles & Lunchboxes',
+        description: 'Stainless steel flask found in library',
+        location: 'Central Library',
+        incident_date: '2026-10-27',
+        image_path: null,
+      });
+
+      // Attempt to modify immutable owner_id, id, and item_type
+      const updated = await itemsService.updateItem(item.id, {
+        ...item,
+        owner_id: 'malicious-attacker-id',
+        item_type: 'lost',
+        location: 'Main Building',
+      });
+
+      expect(updated.location).toBe('Main Building');
+      expect(updated.owner_id).toBe('user-rohit-001'); // Untouched
+      expect(updated.item_type).toBe('found');          // Untouched
+    });
+
+    it('preserves self-claim prevention and found-only requirement', async () => {
+      const foundItem = await itemsService.createItem({
+        owner_id: 'user-rohit-001',
+        item_type: 'found',
+        item_name: 'Drawing Folder',
+        category: 'Books, Notes & Stationery',
+        description: 'Large black folio found in workshop',
+        location: 'Workshop',
+        incident_date: '2026-10-27',
+        image_path: null,
+      });
+
+      // Self-claim must be rejected
+      await expect(
+        claimsService.createClaim(foundItem.id, 'user-rohit-001', 'Trying to claim my own reported item')
+      ).rejects.toThrow(/You cannot claim an item that you reported/);
+
+      const lostItem = await itemsService.createItem({
+        owner_id: 'user-rohit-001',
+        item_type: 'lost',
+        item_name: 'Lost Ring',
+        category: 'Eyewear & Accessories',
+        description: 'Lost silver ring near sports ground',
+        location: 'Cricket Ground',
+        incident_date: '2026-10-27',
+        image_path: null,
+      });
+
+      // Claiming a lost report must be rejected
+      await expect(
+        claimsService.createClaim(lostItem.id, 'user-priya-002', 'Trying to claim a lost item report')
+      ).rejects.toThrow(/Ownership claims can only be submitted for found items/);
+    });
+
+    it('preserves privacy of claimant contact details until approval', async () => {
+      const item = await itemsService.createItem({
+        owner_id: 'user-rohit-001',
+        item_type: 'found',
+        item_name: 'Reading Glasses',
+        category: 'Eyewear & Accessories',
+        description: 'Rimless spectacles in black case found in library',
+        location: 'Central Library',
+        incident_date: '2026-10-27',
+        image_path: null,
+      });
+
+      const claim = await claimsService.createClaim(
+        item.id,
+        'user-priya-002',
+        'Lenses are -1.5 with anti-glare blue coating'
+      );
+
+      const pendingClaims = await claimsService.fetchClaimsByItem(item.id);
+      const target = pendingClaims.find((c) => c.id === claim.id);
+
+      expect(target).toBeDefined();
+      expect(target?.claimant?.full_name).toBeDefined();
+      // Phone and email must remain protected and hidden
+      expect(target?.claimant?.phone).toBeUndefined();
+      expect(target?.claimant?.email).toBeUndefined();
     });
   });
 });

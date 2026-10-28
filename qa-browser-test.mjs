@@ -59,6 +59,12 @@ async function runQASuite() {
       }
     });
 
+    page.on('response', (response) => {
+      if (response.status() === 404) {
+        console.log('[404 Not Found URL]:', response.url());
+      }
+    });
+
     page.on('pageerror', (err) => {
       consoleErrors.push(err.toString());
       console.log('[Browser Page Error]:', err.toString());
