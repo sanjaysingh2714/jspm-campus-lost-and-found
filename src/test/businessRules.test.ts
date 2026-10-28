@@ -17,7 +17,7 @@ describe('Campus Lost & Found Business Rules & Security Safeguards', () => {
       item_name: 'Fastrack Watch',
       category: 'Clothing & Accessories',
       description: 'Found black analog watch in sports ground',
-      location: 'Sports Complex & Ground',
+      location: 'Cricket Ground',
       incident_date: '2026-10-26',
       image_path: null,
     });
@@ -67,7 +67,7 @@ describe('Campus Lost & Found Business Rules & Security Safeguards', () => {
       item_name: 'Scientific Calculator',
       category: 'Electronics & Gadgets',
       description: 'Found fx-991EX calculator in CS lab',
-      location: 'Computer Science Labs (CS-1/2/3)',
+      location: 'Main Building',
       incident_date: '2026-10-26',
       image_path: null,
     });
@@ -106,7 +106,7 @@ describe('Campus Lost & Found Business Rules & Security Safeguards', () => {
       item_name: 'Umbrella',
       category: 'Other Items',
       description: 'Blue umbrella found at gate',
-      location: 'Bus Bay & Main Entrance Gate',
+      location: 'Main Building',
       incident_date: '2026-10-26',
       image_path: null,
     });
@@ -131,7 +131,7 @@ describe('Campus Lost & Found Business Rules & Security Safeguards', () => {
       item_name: 'Lost Wallet',
       category: 'Wallets, Purses & Cash',
       description: 'Lost my brown leather wallet near auditorium',
-      location: 'Central Auditorium',
+      location: 'Open Theatre',
       incident_date: '2026-10-26',
       image_path: null,
     });
@@ -217,7 +217,7 @@ describe('Campus Lost & Found Business Rules & Security Safeguards', () => {
       item_name: 'Gym Bag',
       category: 'Bags & Backpacks',
       description: 'Found black sports bag near gym',
-      location: 'Sports Complex & Ground',
+      location: 'Cricket Ground',
       incident_date: '2026-10-26',
       image_path: null,
     });

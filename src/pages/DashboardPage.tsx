@@ -37,7 +37,8 @@ import {
 } from 'lucide-react';
 import { itemsService, ItemFilters } from '../services/itemsService';
 import { claimsService } from '../services/claimsService';
-import { Item, ItemType, ItemStatus, ITEM_CATEGORIES, CAMPUS_LOCATIONS } from '../types/database';
+import { Item, ItemType, ItemStatus, ITEM_CATEGORIES } from '../types/database';
+import { CAMPUS_LOCATIONS } from '../constants/campusLocations';
 import { useAuth } from '../context/AuthContext';
 import { ItemCard } from '../components/ui/ItemCard';
 import { Button } from '../components/ui/Button';
@@ -300,7 +301,7 @@ export const DashboardPage: React.FC = () => {
             Live Notice
           </span>
           <p className="truncate text-slate-300">
-            Found items in <strong>Central Library</strong>, <strong>CS Lab 2</strong>, and the <strong>Main Canteen</strong> are awaiting owner claims. Please submit identifying details to verify.
+            Found items in <strong>Central Library</strong>, <strong>Main Building</strong>, and the <strong>Foodcourt</strong> are awaiting owner claims. Please submit identifying details to verify.
           </p>
         </div>
       </div>
@@ -708,7 +709,7 @@ export const DashboardPage: React.FC = () => {
 
               <div>
                 <div className="flex justify-between text-xs font-semibold mb-1">
-                  <span className="text-slate-800">Main Campus Canteen</span>
+                  <span className="text-slate-800">Foodcourt</span>
                   <span className="text-teal-700 font-bold">28%</span>
                 </div>
                 <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
@@ -718,7 +719,7 @@ export const DashboardPage: React.FC = () => {
 
               <div>
                 <div className="flex justify-between text-xs font-semibold mb-1">
-                  <span className="text-slate-800">Computer Science Labs</span>
+                  <span className="text-slate-800">Main Building</span>
                   <span className="text-teal-700 font-bold">18%</span>
                 </div>
                 <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
@@ -728,7 +729,7 @@ export const DashboardPage: React.FC = () => {
 
               <div>
                 <div className="flex justify-between text-xs font-semibold mb-1">
-                  <span className="text-slate-800">Sports Ground &amp; Gym</span>
+                  <span className="text-slate-800">Cricket Ground</span>
                   <span className="text-teal-700 font-bold">12%</span>
                 </div>
                 <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">

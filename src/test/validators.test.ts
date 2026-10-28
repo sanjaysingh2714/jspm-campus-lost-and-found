@@ -8,6 +8,7 @@ import {
   indianPhoneRegex,
   prnRegex,
 } from '../lib/validators';
+import { CAMPUS_LOCATIONS } from '../constants/campusLocations';
 
 describe('Validators & Input Constraints', () => {
   describe('Indian Phone Regex', () => {
@@ -103,12 +104,35 @@ describe('Validators & Input Constraints', () => {
       itemName: 'Dell Wireless Mouse',
       category: 'Electronics & Gadgets',
       description: 'Black optical mouse found near terminal 4 in computer lab',
-      location: 'Computer Science Labs (CS-1/2/3)',
+      location: 'Main Building',
       incidentDate: '2026-10-25',
     };
 
     it('accepts valid item data', () => {
       expect(itemSchema.safeParse(validItem).success).toBe(true);
+    });
+
+    it('accepts each of the 15 official project campus locations', () => {
+      expect(CAMPUS_LOCATIONS.length).toBe(15);
+      CAMPUS_LOCATIONS.forEach((loc) => {
+        const res = itemSchema.safeParse({ ...validItem, location: loc });
+        expect(res.success).toBe(true);
+      });
+    });
+
+    it('rejects invalid, empty, or legacy unapproved campus locations', () => {
+      const invalidLocations = [
+        'Unknown Building',
+        'Off-Campus Point',
+        'Computer Science Labs (CS-1/2/3)', // Old removed option
+        'Sports Complex & Ground',          // Old removed option
+        'Central Auditorium',               // Old removed option
+        '',
+      ];
+      invalidLocations.forEach((badLoc) => {
+        const res = itemSchema.safeParse({ ...validItem, location: badLoc });
+        expect(res.success).toBe(false);
+      });
     });
 
     it('rejects future incident dates', () => {

@@ -6,7 +6,8 @@ import { Search, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { itemSchema, ItemFormData } from '../lib/validators';
 import { itemsService } from '../services/itemsService';
 import { useAuth } from '../context/AuthContext';
-import { ITEM_CATEGORIES, CAMPUS_LOCATIONS } from '../types/database';
+import { ITEM_CATEGORIES } from '../types/database';
+import { CAMPUS_LOCATIONS, CAMPUS_LOCATION_PLACEHOLDER } from '../constants/campusLocations';
 import { Input, Textarea, Select } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { ImageUpload } from '../components/ui/ImageUpload';
@@ -113,7 +114,8 @@ export const ReportLostPage: React.FC = () => {
             <Select
               label="Category"
               required
-              options={['', ...ITEM_CATEGORIES]}
+              placeholder="Select category"
+              options={ITEM_CATEGORIES}
               error={errors.category?.message}
               {...register('category')}
             />
@@ -122,7 +124,8 @@ export const ReportLostPage: React.FC = () => {
             <Select
               label="Last Seen Campus Location"
               required
-              options={['', ...CAMPUS_LOCATIONS]}
+              placeholder={CAMPUS_LOCATION_PLACEHOLDER}
+              options={CAMPUS_LOCATIONS}
               error={errors.location?.message}
               {...register('location')}
             />

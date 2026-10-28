@@ -70,21 +70,9 @@ export const ITEM_CATEGORIES = [
   'Other Items',
 ] as const;
 
-export const CAMPUS_LOCATIONS = [
-  'Central Library',
-  'Main Academic Block - Floor 1',
-  'Main Academic Block - Floor 2',
-  'Main Academic Block - Floor 3',
-  'Computer Science Labs (CS-1/2/3)',
-  'Mechanical & Robotics Workshop',
-  'Electronics & IoT Lab',
-  'Main Campus Canteen & Food Court',
-  'Boys Hostel Block A & B',
-  'Girls Hostel Block C & D',
-  'Sports Complex & Ground',
-  'Central Auditorium',
-  'Student Parking Area',
-  'Administrative & Admissions Office',
-  'Bus Bay & Main Entrance Gate',
-  'Other / Off-Campus Point',
-] as const;
+export {
+  CAMPUS_LOCATIONS,
+  type CampusLocation,
+  CAMPUS_LOCATION_PLACEHOLDER,
+  isValidCampusLocation,
+} from '../constants/campusLocations';

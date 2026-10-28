@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { CAMPUS_LOCATIONS } from '../constants/campusLocations';
 
 // Indian Mobile Number regex: allows optional +91 or 0 prefix followed by 10 digits starting with 6, 7, 8, or 9
 export const indianPhoneRegex = /^(?:\+91|0)?[6-9]\d{9}$/;
@@ -100,7 +101,13 @@ export const itemSchema = z.object({
     .trim()
     .min(10, 'Please provide more details (at least 10 characters) to help identify the item')
     .max(1000, 'Description cannot exceed 1000 characters'),
-  location: z.string().min(1, 'Please specify the campus location'),
+  location: z
+    .string()
+    .trim()
+    .min(1, 'Please select a campus location')
+    .refine((val) => (CAMPUS_LOCATIONS as readonly string[]).includes(val), {
+      message: 'Please select a valid campus location from the official list',
+    }),
   incidentDate: z
     .string()
     .min(1, 'Please select the date')

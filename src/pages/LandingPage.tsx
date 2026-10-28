@@ -86,9 +86,9 @@ export const LandingPage: React.FC = () => {
             </div>
             <div className="bg-white/5 border border-white/10 rounded-xl p-4 backdrop-blur-xs">
               <div className="flex items-center gap-2 text-teal-400 font-extrabold text-2xl">
-                <span>12+</span>
+                <span>15</span>
               </div>
-              <p className="text-xs text-slate-400 mt-1">Monitored Campus Locations</p>
+              <p className="text-xs text-slate-400 mt-1">Official Campus Locations</p>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-xl p-4 backdrop-blur-xs">
               <div className="flex items-center gap-2 text-teal-400 font-extrabold text-2xl">

@@ -185,8 +185,8 @@ async function runQASuite() {
     // Select category (Electronics)
     await page.select('select[name="category"]', 'Electronics & Gadgets');
 
-    // Select campus location
-    await page.select('select[name="location"]', 'Computer Science Labs (CS-1/2/3)');
+    // Select campus location from official 15 locations
+    await page.select('select[name="location"]', 'Workshop');
 
     // Incident date is pre-filled, type description
     await page.type(
